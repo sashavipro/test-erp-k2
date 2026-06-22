@@ -3,24 +3,31 @@
 Small ERP service to manage clients, products, and orders.
 
 ## Features
-- Create clients, products, orders.
-- Orders amount is automatically calculated.
-- View all orders for a client.
-- Simple HTMX frontend interface.
+- Create and manage clients, products, and orders.
+- Orders amount is automatically calculated based on product prices and quantities.
+- View all orders for a specific client.
+- Simple HTMX frontend interface for interactions.
 
 ## Tech Stack
-- **Backend:** FastAPI, Python 3.10+, SQLAlchemy (async), Asyncpg, Alembic.
+- **Backend:** FastAPI, Python 3.12+, SQLAlchemy (async), Asyncpg, Alembic.
 - **Dependency Injection:** Dishka
 - **Dependency Management:** Poetry
 - **Database:** PostgreSQL
-- **Frontend:** HTMX + HTML + CSS
+- **Frontend:** HTMX + HTML + CSS + Jinja2 Templates
 - **Infrastructure:** Docker, Docker Compose
+- **Linting & Formatting:** Ruff, Pre-commit
 
 ## Project Structure
 We follow a modular architecture inspired by Django apps:
-- `src/apps/`: Contains modules (`clients`, `products`, `orders`, `frontend`), each with their own `routers`, `services`, `repositories`, `schemas`.
-- `src/core/`: Contains models and configuration.
-- `src/infrastructure/`: Contains database setup.
+- `src/apps/`: Contains modules (`clients`, `products`, `orders`, `frontend`). Each domain module includes:
+  - `routers.py`: FastAPI route definitions.
+  - `services.py`: Core business logic.
+  - `repositories.py`: Database access layer using SQLAlchemy.
+  - `schemas.py`: Pydantic models for validation.
+  - `provider.py`: Dishka dependency injection providers.
+- `src/core/`: Contains base models, custom exceptions, application config, and logging.
+- `src/infrastructure/`: Contains database connection setup and session management.
+- `src/setup/`: Contains application initialization and DI container configuration.
 
 ## Running the Application
 
@@ -39,14 +46,27 @@ We follow a modular architecture inspired by Django apps:
    ```bash
    poetry install
    ```
-3. Run migrations:
+3. Install frontend dependencies and build TypeScript:
+   ```bash
+   npm install
+   npm run build:ts
+   ```
+4. Run migrations:
    ```bash
    poetry run alembic upgrade head
    ```
-4. Start the application:
+5. Start the application:
    ```bash
-   poetry run uvicorn src.main:app --reload
+   poetry run python -m src.main
    ```
+
+## Development and Linting
+We use `pre-commit` and `ruff` to ensure code quality and formatting.
+
+To run linters across the entire project:
+```bash
+poetry run pre-commit run --all-files
+```
 
 ## Tests
 To run tests locally:

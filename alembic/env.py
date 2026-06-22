@@ -21,9 +21,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# Import all models here so Alembic can discover them
 from src.core.config import settings
-from src.core.models import Base
+from src.core.models.base import Base
+
+# Import all models to ensure Alembic discovers them for autogenerate
+from src.apps.clients.models import Client
+from src.apps.products.models import Product
+from src.apps.orders.models import Order, OrderItem
 
 # add your model's MetaData object here
 # for 'autogenerate' support

@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi import Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from src.apps.clients.routers import router as clients_router
 from src.apps.frontend.routers import router as frontend_router
@@ -17,7 +18,7 @@ from src.setup.lifespan import lifespan
 
 def create_app() -> FastAPI:
     """Build and return the FastAPI application with all routers and middlewares."""
-    app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+    app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan, debug=settings.DEBUG)
 
     @app.exception_handler(AppError)
     async def app_error_handler(request: Request, exc: AppError):
@@ -50,5 +51,9 @@ def create_app() -> FastAPI:
     app.include_router(products_router, prefix="/api")
     app.include_router(orders_router, prefix="/api")
     app.include_router(frontend_router)
+
+    app.mount(
+        "/static", StaticFiles(directory="src/apps/frontend/static"), name="static"
+    )
 
     return app

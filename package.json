@@ -1,0 +1,19 @@
+{
+    "name": "test-erp-k2",
+    "version": "1.0.0",
+    "description": "Small ERP service to manage clients, products, and orders.",
+    "main": "index.js",
+    "directories": {
+        "test": "tests"
+    },
+    "scripts": {
+        "build:ts": "tsc",
+        "dev:ts": "tsc --watch"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "typescript": "^6.0.3"
+    }
+}

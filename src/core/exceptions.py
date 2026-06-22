@@ -2,6 +2,18 @@
 
 from typing import Any
 
+from pydantic import BaseModel
+from pydantic import Field
+
+
+class ErrorResponseSchema(BaseModel):
+    """Standardized error response format for the frontend."""
+
+    error_code: str = Field(
+        ..., description="Unique error code for the frontend to switch on"
+    )
+    message: str = Field(..., description="Human-readable error message")
+
 
 class AppError(Exception):
     """Base exception for all application-level errors."""
@@ -64,16 +76,43 @@ class PermissionDeniedError(AppError):
         super().__init__("Permission denied", status_code=403, error_code="FORBIDDEN")
 
 
+class ValidationError(AppError):
+    """Validation error."""
+
+    def __init__(self):
+        """Initialize validation error."""
+        super().__init__(
+            "Validation Error", status_code=422, error_code="VALIDATION_ERROR"
+        )
+
+
+class InternalServerError(AppError):
+    """Internal server error."""
+
+    def __init__(self):
+        """Initialize internal server error."""
+        super().__init__(
+            "An unexpected error occurred",
+            status_code=500,
+            error_code="INTERNAL_SERVER_ERROR",
+        )
+
+
 def create_error_responses(*exceptions: type[AppError]) -> dict[int, dict[str, Any]]:
     """Generate OpenAPI response schemas for given AppError classes."""
     responses = {}
     for exc in exceptions:
         # Create an instance to access default values
         instance = exc()
-        responses.setdefault(
-            instance.status_code,
-            {"description": "Error", "content": {"application/json": {"examples": {}}}},
-        )
+        if instance.status_code not in responses:
+            responses[instance.status_code] = {
+                "description": instance.message,
+                "model": ErrorResponseSchema,
+                "content": {"application/json": {"examples": {}}},
+            }
+        # If multiple errors share the same status code, append their descriptions
+        elif instance.message not in responses[instance.status_code]["description"]:
+            responses[instance.status_code]["description"] += f" | {instance.message}"
 
         responses[instance.status_code]["content"]["application/json"]["examples"][
             instance.error_code
@@ -82,3 +121,6 @@ def create_error_responses(*exceptions: type[AppError]) -> dict[int, dict[str, A
             "value": {"error_code": instance.error_code, "message": instance.message},
         }
     return responses
+
+
+COMMON_ERROR_CLASSES = (ValidationError, InternalServerError)

@@ -3,6 +3,7 @@
 from pathlib import Path
 
 from dishka.integrations.fastapi import FromDishka
+from dishka.integrations.fastapi import inject
 from fastapi import APIRouter
 from fastapi import Request
 from fastapi.responses import HTMLResponse
@@ -17,6 +18,7 @@ templates = Jinja2Templates(directory=templates_dir)
 
 
 @router.get("/", response_class=HTMLResponse)
+@inject
 async def index(
     request: Request,
     client_service: FromDishka[ClientService],
@@ -27,5 +29,7 @@ async def index(
     products = await product_service.get_products()
 
     return templates.TemplateResponse(
-        "index.html", {"request": request, "clients": clients, "products": products}
+        request=request,
+        name="index.html",
+        context={"clients": clients, "products": products},
     )

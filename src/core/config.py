@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     """Application configuration settings, loaded from .env."""
 
     PROJECT_NAME: str = "test-erp-k2"
+    DEBUG: bool = False
 
     # Postgres configuration, required in .env
     POSTGRES_USER: str
