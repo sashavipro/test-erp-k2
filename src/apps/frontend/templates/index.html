@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f4f4f9; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; display: flex; gap: 20px; flex-wrap: wrap;}
+        .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); flex: 1; min-width: 300px;}
+        h2 { color: #0056b3; margin-top: 0; }
+        input, select, button { display: block; width: 100%; margin-bottom: 10px; padding: 10px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #0056b3; color: white; border: none; cursor: pointer; transition: background 0.3s; }
+        button:hover { background-color: #004494; }
+        ul { list-style-type: none; padding: 0; }
+        li { background: #eef; margin-bottom: 5px; padding: 10px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Client form -->
+        <div class="card">
+            <h2>Add Client</h2>
+            <form hx-post="/api/clients/" hx-ext="json-enc" hx-on::after-request="if(event.detail.successful) location.reload()">
+                <input type="text" name="name" placeholder="Name" required>
+                <input type="email" name="email" placeholder="Email">
+                <button type="submit">Create Client</button>
+            </form>
+            <h3>Clients</h3>
+            <ul>
+                {% for client in clients %}
+                <li>{{ client.name }} ({{ client.email }})</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Product form -->
+        <div class="card">
+            <h2>Add Product</h2>
+            <form hx-post="/api/products/" hx-ext="json-enc" hx-on::after-request="if(event.detail.successful) location.reload()">
+                <input type="text" name="name" placeholder="Product Name" required>
+                <input type="number" step="0.01" name="price" placeholder="Price" required>
+                <button type="submit">Create Product</button>
+            </form>
+            <h3>Products</h3>
+            <ul>
+                {% for product in products %}
+                <li>{{ product.name }} - ${{ product.price }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Order form -->
+        <div class="card">
+            <h2>Create Order</h2>
+            <form id="orderForm">
+                <select id="clientSelect" required>
+                    <option value="">Select Client</option>
+                    {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.name }}</option>
+                    {% endfor %}
+                </select>
+                <select id="productSelect" required>
+                    <option value="">Select Product</option>
+                    {% for product in products %}
+                    <option value="{{ product.id }}">{{ product.name }} - ${{ product.price }}</option>
+                    {% endfor %}
+                </select>
+                <input type="number" id="quantity" placeholder="Quantity" value="1" min="1" required>
+                <button type="button" onclick="submitOrder()">Create Order</button>
+            </form>
+            
+            <h3>Check Client Orders</h3>
+            <select id="checkClient" onchange="loadOrders()">
+                <option value="">Select Client</option>
+                {% for client in clients %}
+                <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+            </select>
+            <div id="ordersList"></div>
+        </div>
+    </div>
+    
+    <!-- JSON extension for htmx -->
+    <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
+
+    <script>
+        async function submitOrder() {
+            const clientId = document.getElementById('clientSelect').value;
+            const productId = document.getElementById('productSelect').value;
+            const quantity = parseInt(document.getElementById('quantity').value);
+
+            if(!clientId || !productId) {
+                alert("Please select client and product");
+                return;
+            }
+
+            const payload = {
+                client_id: clientId,
+                items: [{ product_id: productId, quantity: quantity }]
+            };
+
+            const response = await fetch('/api/orders/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if(response.ok) {
+                alert("Order created successfully!");
+                if(document.getElementById('checkClient').value === clientId) {
+                    loadOrders();
+                }
+            } else {
+                alert("Failed to create order");
+            }
+        }
+
+        async function loadOrders() {
+            const clientId = document.getElementById('checkClient').value;
+            const container = document.getElementById('ordersList');
+            container.innerHTML = '';
+            
+            if(!clientId) return;
+
+            const response = await fetch(`/api/orders/client/${clientId}`);
+            if(response.ok) {
+                const orders = await response.json();
+                if(orders.length === 0) {
+                    container.innerHTML = '<p>No orders found.</p>';
+                    return;
+                }
+                const ul = document.createElement('ul');
+                orders.forEach(order => {
+                    const li = document.createElement('li');
+                    li.textContent = `Order ID: ${order.id} | Total: $${order.total_amount}`;
+                    ul.appendChild(li);
+                });
+                container.appendChild(ul);
+            }
+        }
+    </script>
+</body>
+</html>
