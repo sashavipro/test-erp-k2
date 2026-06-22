@@ -1,9 +1,15 @@
+"""src/core/models/base.py."""
+
 import datetime
 import re
 from typing import Annotated
-from sqlalchemy import MetaData, func
+
+from sqlalchemy import MetaData
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, mapped_column, declared_attr
+from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy.orm import declared_attr
+from sqlalchemy.orm import mapped_column
 
 POSTGRES_INDEXES_NAMING_CONVENTION = {
     "ix": "%(column_0_label)s_idx",
@@ -25,19 +31,23 @@ UpdatedAt = Annotated[
     mapped_column(server_default=func.now(), onupdate=func.now()),
 ]
 
+
 def camel_to_snake(name: str) -> str:
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()
+    """Convert camel case to snake case."""
+    name = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", name)
+    return re.sub("([a-z0-9])([A-Z])", r"\1_\2", name).lower()
+
 
 class Base(AsyncAttrs, DeclarativeBase):
-    """
-    Base class for all SQLAlchemy models.
+    """Base class for all SQLAlchemy models.
+
     Automatically generates __tablename__ and configures indexes.
     """
 
     metadata = MetaData(naming_convention=POSTGRES_INDEXES_NAMING_CONVENTION)
 
     @declared_attr.directive
-    def __tablename__(cls) -> str:
-        snake_case = camel_to_snake(cls.__name__)
+    def __tablename__(self) -> str:
+        """Return dynamically generated table name."""
+        snake_case = camel_to_snake(self.__name__)
         return f"{snake_case}s"

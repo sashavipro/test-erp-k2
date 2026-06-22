@@ -70,7 +70,7 @@
                 <input type="number" id="quantity" placeholder="Quantity" value="1" min="1" required>
                 <button type="button" onclick="submitOrder()">Create Order</button>
             </form>
-            
+
             <h3>Check Client Orders</h3>
             <select id="checkClient" onchange="loadOrders()">
                 <option value="">Select Client</option>
@@ -81,7 +81,7 @@
             <div id="ordersList"></div>
         </div>
     </div>
-    
+
     <!-- JSON extension for htmx -->
     <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js"></script>
 
@@ -121,7 +121,7 @@
             const clientId = document.getElementById('checkClient').value;
             const container = document.getElementById('ordersList');
             container.innerHTML = '';
-            
+
             if(!clientId) return;
 
             const response = await fetch(`/api/orders/client/${clientId}`);

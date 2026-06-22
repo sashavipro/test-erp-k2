@@ -1,20 +1,22 @@
-from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
-from fastapi.middleware.cors import CORSMiddleware
+"""src/setup/app.py."""
 
+from fastapi import FastAPI
+from fastapi import Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from src.apps.clients.routers import router as clients_router
+from src.apps.frontend.routers import router as frontend_router
+from src.apps.orders.routers import router as orders_router
+from src.apps.products.routers import router as products_router
 from src.core.config import settings
 from src.core.exceptions import AppError
 from src.core.logger import logger
-from src.apps.clients.routers import router as clients_router
-from src.apps.products.routers import router as products_router
-from src.apps.orders.routers import router as orders_router
-from src.apps.frontend.routers import router as frontend_router
 from src.setup.lifespan import lifespan
 
+
 def create_app() -> FastAPI:
-    """
-    Builds and returns the FastAPI application with all routers and middlewares.
-    """
+    """Build and return the FastAPI application with all routers and middlewares."""
     app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
 
     @app.exception_handler(AppError)
@@ -22,7 +24,7 @@ def create_app() -> FastAPI:
         logger.warning(f"AppError Handled: {exc.error_code} - {exc.message}")
         return JSONResponse(
             status_code=exc.status_code,
-            content={"error_code": exc.error_code, "message": exc.message}
+            content={"error_code": exc.error_code, "message": exc.message},
         )
 
     @app.exception_handler(Exception)
@@ -30,7 +32,10 @@ def create_app() -> FastAPI:
         logger.exception(f"Unhandled Exception: {exc}")
         return JSONResponse(
             status_code=500,
-            content={"error_code": "INTERNAL_SERVER_ERROR", "message": "An unexpected error occurred."}
+            content={
+                "error_code": "INTERNAL_SERVER_ERROR",
+                "message": "An unexpected error occurred.",
+            },
         )
 
     app.add_middleware(

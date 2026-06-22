@@ -16,18 +16,14 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
+# Import all models here so Alembic can discover them
 from src.core.config import settings
 from src.core.models import Base
-
-# Import all models here so Alembic can discover them
-import src.apps.clients.models
-import src.apps.products.models
-import src.apps.orders.models
 
 # add your model's MetaData object here
 # for 'autogenerate' support
@@ -77,7 +73,6 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
-
     configuration = config.get_section(config.config_ini_section, {})
     configuration["sqlalchemy.url"] = settings.database_url
     connectable = async_engine_from_config(
@@ -94,7 +89,6 @@ async def run_async_migrations() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-
     asyncio.run(run_async_migrations())
 
 

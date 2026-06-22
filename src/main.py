@@ -1,3 +1,5 @@
+"""src/main.py."""
+
 import uvicorn
 from dishka.integrations.fastapi import setup_dishka
 
